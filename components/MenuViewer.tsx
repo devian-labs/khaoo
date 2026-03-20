@@ -37,6 +37,8 @@ type ShopData = {
   logoPlacement?: "center" | "left";
   categories?: string[];
   tableOrderingEnabled?: boolean;
+  plan?: string;
+  trialStartDate?: string;
 };
 
 export default function MenuViewer({ shopId }: { shopId: string }) {
@@ -129,7 +131,22 @@ export default function MenuViewer({ shopId }: { shopId: string }) {
   const layoutStyle = shopData?.layoutStyle || "list";
   const logoPlacement = shopData?.logoPlacement || "center";
   const isCenter = logoPlacement === "center";
-  const isOrderingEnabled = shopData?.tableOrderingEnabled !== false;
+  
+  let isOrderingEnabled = true;
+  if (shopData) {
+    if (shopData.tableOrderingEnabled !== undefined) {
+      isOrderingEnabled = shopData.tableOrderingEnabled;
+    } else {
+      const plan = shopData.plan || 'trial';
+      let isTrialActive = false;
+      if (plan === 'trial' && shopData.trialStartDate) {
+        const trialStart = new Date(shopData.trialStartDate);
+        const daysElapsed = (new Date().getTime() - trialStart.getTime()) / (1000 * 3600 * 24);
+        isTrialActive = daysElapsed < 7;
+      }
+      isOrderingEnabled = isTrialActive || plan === 'pro';
+    }
+  }
 
   const isDarkBg = getLuminance(backgroundColor) < 0.5;
 
