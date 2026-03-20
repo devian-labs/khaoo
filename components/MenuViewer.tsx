@@ -35,6 +35,8 @@ type ShopData = {
   layoutStyle?: "list" | "grid";
   logoUrl?: string;
   logoPlacement?: "center" | "left";
+  categories?: string[];
+  tableOrderingEnabled?: boolean;
 };
 
 export default function MenuViewer({ shopId }: { shopId: string }) {
@@ -92,7 +94,10 @@ export default function MenuViewer({ shopId }: { shopId: string }) {
     };
   }, [shopId]);
 
-  const dynamicCategories = ["All", ...Array.from(new Set(menuItems.map(item => item.category)))];
+  const dynamicCategories = shopData?.categories && shopData.categories.length > 0 
+    ? ["All", ...shopData.categories] 
+    : ["All"];
+    
   const filteredMenu = activeCategory === "All" 
     ? menuItems 
     : menuItems.filter(item => item.category === activeCategory);
@@ -124,6 +129,7 @@ export default function MenuViewer({ shopId }: { shopId: string }) {
   const layoutStyle = shopData?.layoutStyle || "list";
   const logoPlacement = shopData?.logoPlacement || "center";
   const isCenter = logoPlacement === "center";
+  const isOrderingEnabled = shopData?.tableOrderingEnabled !== false;
 
   const isDarkBg = getLuminance(backgroundColor) < 0.5;
 
@@ -202,45 +208,47 @@ export default function MenuViewer({ shopId }: { shopId: string }) {
       <div className={`p-4 ${layoutStyle === 'grid' ? 'grid grid-cols-2 gap-4' : 'flex flex-col gap-3'}`}>
         {filteredMenu.map((item) => (
           layoutStyle === 'grid' 
-            ? <GridItem key={item.id} item={item} primaryColor={primaryColor} primaryColorTransparent={primaryColorTransparent} />
-            : <ListItem key={item.id} item={item} primaryColor={primaryColor} primaryColorTransparent={primaryColorTransparent} />
+            ? <GridItem key={item.id} item={item} primaryColor={primaryColor} primaryColorTransparent={primaryColorTransparent} isOrderingEnabled={isOrderingEnabled} />
+            : <ListItem key={item.id} item={item} primaryColor={primaryColor} primaryColorTransparent={primaryColorTransparent} isOrderingEnabled={isOrderingEnabled} />
         ))}
       </div>
 
       {/* Powered By Footer */}
-      <div className="mt-8 mb-8 pb-32 flex justify-center">
+      <div className={`mt-8 mb-8 ${isOrderingEnabled ? 'pb-32' : 'pb-12'} flex justify-center`}>
         <a href="/" target="_blank" rel="noopener noreferrer" className="text-[12px] font-medium opacity-50 hover:opacity-100 transition-opacity" style={{ color: 'var(--theme-text-secondary)' }}>
           Powered by <span className="font-bold tracking-tight text-[13px]">khaoo</span>
         </a>
       </div>
 
       {/* Floating Action Bar (Cart) */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 p-4 pb-6 w-full max-w-md mx-auto pointer-events-none">
-        <div className="w-full pointer-events-auto">
-          <button 
-            style={{ backgroundColor: primaryColor, boxShadow: `0 10px 25px -5px ${primaryColorTransparent}, 0 8px 10px -6px ${primaryColorTransparent}` }}
-            className="w-full text-white rounded-[16px] p-4 flex items-center justify-between transition-transform active:scale-95 hover:brightness-110"
-          >
-            <div className="flex items-center gap-3">
-              <div className="relative bg-white/20 p-2 rounded-xl backdrop-blur-sm">
-                <ShoppingBag className="w-4 h-4 text-white" />
-                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-white rounded-full flex items-center justify-center text-[10px] font-extrabold" style={{ color: primaryColor }}>0</span>
+      {isOrderingEnabled && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 p-4 pb-6 w-full max-w-md mx-auto pointer-events-none">
+          <div className="w-full pointer-events-auto">
+            <button 
+              style={{ backgroundColor: primaryColor, boxShadow: `0 10px 25px -5px ${primaryColorTransparent}, 0 8px 10px -6px ${primaryColorTransparent}` }}
+              className="w-full text-white rounded-[16px] p-4 flex items-center justify-between transition-transform active:scale-95 hover:brightness-110"
+            >
+              <div className="flex items-center gap-3">
+                <div className="relative bg-white/20 p-2 rounded-xl backdrop-blur-sm">
+                  <ShoppingBag className="w-4 h-4 text-white" />
+                  <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-white rounded-full flex items-center justify-center text-[10px] font-extrabold" style={{ color: primaryColor }}>0</span>
+                </div>
+                <span className="font-bold text-[14px]">View Order</span>
               </div>
-              <span className="font-bold text-[14px]">View Order</span>
-            </div>
-            <span className="font-bold flex items-center gap-1.5 text-[14px] bg-white/20 px-3 py-1.5 rounded-[10px] backdrop-blur-sm">
-              Checkout <ArrowRight className="w-4 h-4" />
-            </span>
-          </button>
+              <span className="font-bold flex items-center gap-1.5 text-[14px] bg-white/20 px-3 py-1.5 rounded-[10px] backdrop-blur-sm">
+                Checkout <ArrowRight className="w-4 h-4" />
+              </span>
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
 
 // Subcomponents for Layouts
 
-function ListItem({ item, primaryColor, primaryColorTransparent }: { item: MenuItem, primaryColor: string, primaryColorTransparent: string }) {
+function ListItem({ item, primaryColor, primaryColorTransparent, isOrderingEnabled }: { item: MenuItem, primaryColor: string, primaryColorTransparent: string, isOrderingEnabled: boolean }) {
   return (
     <div className="flex flex-row p-[12px] rounded-[16px] shadow-sm transition-shadow" style={{ backgroundColor: 'var(--theme-card)', border: '1px solid var(--theme-border)' }}>
       <div className="flex-1 pr-3 flex flex-col justify-between">
@@ -270,18 +278,20 @@ function ListItem({ item, primaryColor, primaryColorTransparent }: { item: MenuI
           </div>
         )}
         
-        <button 
-          style={{ backgroundColor: primaryColorTransparent, color: primaryColor, borderColor: primaryColorTransparent }}
-          className="px-4 py-1.5 font-bold text-[10px] rounded-[8px] transition-all border border-solid relative z-10 w-full active:scale-95 hover:brightness-95"
-        >
-          ADD
-        </button>
+        {isOrderingEnabled && (
+          <button 
+            style={{ backgroundColor: primaryColorTransparent, color: primaryColor, borderColor: primaryColorTransparent }}
+            className="px-4 py-1.5 font-bold text-[10px] rounded-[8px] transition-all border border-solid relative z-10 w-full active:scale-95 hover:brightness-95"
+          >
+            ADD
+          </button>
+        )}
       </div>
     </div>
   );
 }
 
-function GridItem({ item, primaryColor, primaryColorTransparent }: { item: MenuItem, primaryColor: string, primaryColorTransparent: string }) {
+function GridItem({ item, primaryColor, primaryColorTransparent, isOrderingEnabled }: { item: MenuItem, primaryColor: string, primaryColorTransparent: string, isOrderingEnabled: boolean }) {
   return (
     <div className="flex flex-col rounded-[16px] shadow-sm transition-shadow overflow-hidden" style={{ backgroundColor: 'var(--theme-card)', border: '1px solid var(--theme-border)' }}>
       {item.image ? (
@@ -305,12 +315,14 @@ function GridItem({ item, primaryColor, primaryColorTransparent }: { item: MenuI
         
         <div className="flex items-center justify-between mt-auto">
           <span className="font-extrabold text-[15px] tracking-tight" style={{ color: 'var(--theme-text)' }}>₹{item.price}</span>
-          <button 
-            style={{ backgroundColor: primaryColorTransparent, color: primaryColor, borderColor: primaryColorTransparent }}
-            className="px-3 py-1 font-bold text-[10px] rounded-[6px] transition-all border border-solid active:scale-95 hover:brightness-95"
-          >
-            ADD
-          </button>
+          {isOrderingEnabled && (
+            <button 
+              style={{ backgroundColor: primaryColorTransparent, color: primaryColor, borderColor: primaryColorTransparent }}
+              className="px-3 py-1 font-bold text-[10px] rounded-[6px] transition-all border border-solid active:scale-95 hover:brightness-95"
+            >
+              ADD
+            </button>
+          )}
         </div>
       </div>
     </div>
