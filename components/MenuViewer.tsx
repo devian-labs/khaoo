@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { Search, ShoppingBag, UtensilsCrossed, AlertCircle, ArrowRight, X } from "lucide-react";
-import { collection, query, doc, onSnapshot, addDoc, serverTimestamp } from "firebase/firestore";
+import { Search, ShoppingBag, UtensilsCrossed, AlertCircle, ArrowRight, X, Clock, Bell, Receipt } from "lucide-react";
+import { collection, query, doc, onSnapshot, addDoc, serverTimestamp, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { getFontClass } from "@/lib/fonts";
 
@@ -55,12 +55,23 @@ export default function MenuViewer({ shopId }: { shopId: string }) {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [tableNumber, setTableNumber] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [sessionId, setSessionId] = useState("");
+  const [myOrders, setMyOrders] = useState<any[]>([]);
+  const [isTrackerOpen, setIsTrackerOpen] = useState(false);
+  const [isSubmittingRequest, setIsSubmittingRequest] = useState(false);
   
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const urlTable = params.get('table');
       if (urlTable) setTableNumber(urlTable);
+
+      let sid = localStorage.getItem("khaoo_session_id");
+      if (!sid) {
+        sid = crypto.randomUUID();
+        localStorage.setItem("khaoo_session_id", sid);
+      }
+      setSessionId(sid);
     }
 
     let shopLoaded = false;
@@ -113,6 +124,23 @@ export default function MenuViewer({ shopId }: { shopId: string }) {
     };
   }, [shopId]);
 
+  useEffect(() => {
+    if (!sessionId || !shopId) return;
+    const myOrdersRef = collection(db, "orders");
+    const unsubscribeOrders = onSnapshot(
+      query(myOrdersRef, where("shopId", "==", shopId), where("sessionId", "==", sessionId)),
+      (snapshot) => {
+        const fetchedOrders: any[] = [];
+        snapshot.forEach((docSnap) => {
+          fetchedOrders.push({ id: docSnap.id, ...docSnap.data() });
+        });
+        fetchedOrders.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+        setMyOrders(fetchedOrders);
+      }
+    );
+    return () => unsubscribeOrders();
+  }, [sessionId, shopId]);
+
   const dynamicCategories = shopData?.categories && shopData.categories.length > 0 
     ? ["All", ...shopData.categories] 
     : ["All"];
@@ -151,6 +179,7 @@ export default function MenuViewer({ shopId }: { shopId: string }) {
     try {
       await addDoc(collection(db, "orders"), {
         shopId: shopId,
+        sessionId: sessionId,
         tableNumber: tableNumber ? tableNumber.trim() : null,
         items: cart.map(c => ({ name: c.name, quantity: c.quantity, price: c.price })),
         timestamp: serverTimestamp(),
@@ -159,12 +188,33 @@ export default function MenuViewer({ shopId }: { shopId: string }) {
       setCart([]);
       setTableNumber("");
       setIsCheckoutOpen(false);
-      alert("Order placed successfully!");
+      setIsTrackerOpen(true);
     } catch (err) {
       console.error("Failed to place order", err);
       alert("Failed to place order.");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleCustomerRequest = async (type: 'waiter' | 'bill') => {
+    if (!tableNumber) return;
+    setIsSubmittingRequest(true);
+    try {
+      await addDoc(collection(db, "customer_requests"), {
+        shopId: shopId,
+        sessionId: sessionId,
+        tableNumber: tableNumber.trim(),
+        type: type,
+        status: "pending",
+        timestamp: serverTimestamp()
+      });
+      alert(type === 'waiter' ? "Waiter has been notified!" : "Bill requested successfully!");
+    } catch (err) {
+      console.error("Failed to send request", err);
+      alert("Failed to send request.");
+    } finally {
+      setIsSubmittingRequest(false);
     }
   };
 
@@ -295,6 +345,26 @@ export default function MenuViewer({ shopId }: { shopId: string }) {
         })}
       </div>
 
+      {/* Service Actions */}
+      {isOrderingEnabled && tableNumber && (
+        <div className="flex justify-center gap-3 mt-4 mb-4 px-4 w-full max-w-md mx-auto">
+          <button
+            onClick={() => handleCustomerRequest('waiter')}
+            disabled={isSubmittingRequest}
+            className="flex-1 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white py-3 rounded-[12px] font-bold text-[13px] tracking-tight shadow-sm flex items-center justify-center gap-2 border border-zinc-200 dark:border-zinc-700 active:scale-95 transition-transform disabled:opacity-50"
+          >
+            <Bell className="w-4 h-4" style={{ color: primaryColor }} /> Call Waiter
+          </button>
+          <button
+            onClick={() => handleCustomerRequest('bill')}
+            disabled={isSubmittingRequest}
+            className="flex-1 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white py-3 rounded-[12px] font-bold text-[13px] tracking-tight shadow-sm flex items-center justify-center gap-2 border border-zinc-200 dark:border-zinc-700 active:scale-95 transition-transform disabled:opacity-50"
+          >
+            <Receipt className="w-4 h-4" style={{ color: primaryColor }} /> Ask for Bill
+          </button>
+        </div>
+      )}
+
       {/* Powered By Footer */}
       <div className={`mt-8 mb-8 ${isOrderingEnabled ? 'pb-32' : 'pb-12'} flex justify-center`}>
         <a href="/" target="_blank" rel="noopener noreferrer" className="text-[12px] font-medium opacity-50 hover:opacity-100 transition-opacity" style={{ color: 'var(--theme-text-secondary)' }}>
@@ -322,6 +392,86 @@ export default function MenuViewer({ shopId }: { shopId: string }) {
                 ₹{totalPrice} <ArrowRight className="w-4 h-4" />
               </span>
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Track Orders Floating Button */}
+      {myOrders.length > 0 && !isTrackerOpen && (
+        <div className={`fixed left-0 right-0 z-30 p-4 w-full max-w-md mx-auto pointer-events-none transition-all duration-300 ${totalItems > 0 ? 'bottom-24' : 'bottom-0'}`}>
+          <div className="w-full pointer-events-auto flex justify-center">
+             <button 
+               onClick={() => setIsTrackerOpen(true)}
+               className="bg-zinc-900 border-zinc-700 text-white px-5 py-3 rounded-full font-bold text-[14px] shadow-xl flex items-center gap-2 border active:scale-95 transition-transform"
+             >
+               <Clock className="w-4 h-4" style={{ color: '#fff' }} />
+               Track {myOrders.length} Order{myOrders.length !== 1 ? 's' : ''}
+             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Tracker Modal */}
+      {isTrackerOpen && (
+        <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/40 backdrop-blur-sm transition-opacity">
+          <div className="w-full max-w-md mx-auto rounded-t-[24px] overflow-hidden flex flex-col shadow-2xl animate-in slide-in-from-bottom duration-300" style={{ backgroundColor: 'var(--theme-bg)', maxHeight: '90vh' }}>
+            <div className="p-5 border-b shadow-sm flex justify-between items-center" style={{ borderColor: 'var(--theme-border)', backgroundColor: 'var(--theme-card)' }}>
+              <h2 className="text-[18px] font-extrabold tracking-tight flex items-center gap-2" style={{ color: 'var(--theme-text)' }}>
+                <Clock className="w-5 h-5" style={{ color: primaryColor }} /> My Orders
+              </h2>
+              <button 
+                onClick={() => setIsTrackerOpen(false)} 
+                className="p-2 rounded-full transition-colors active:scale-95 hover:bg-black/5"
+                style={{ backgroundColor: 'var(--theme-search)' }}
+              >
+                <X className="w-5 h-5" style={{ color: 'var(--theme-text-secondary)' }} />
+              </button>
+            </div>
+            
+            <div className="p-5 overflow-y-auto flex-1 space-y-4">
+              {myOrders.map(order => {
+                let statusLabel = "Order Placed";
+                let statusColor = "text-zinc-500 font-bold";
+                let statusBg = "bg-zinc-100 dark:bg-zinc-800";
+                
+                if (order.status === "accepted") { 
+                  statusLabel = "Preparing Your Food"; 
+                  statusColor = "text-amber-700 dark:text-amber-400 font-bold";
+                  statusBg = "bg-amber-100 dark:bg-amber-900/30";
+                }
+                if (order.status === "completed") { 
+                  statusLabel = "Delivered to Table"; 
+                  statusColor = "text-emerald-700 dark:text-emerald-400 font-bold";
+                  statusBg = "bg-emerald-100 dark:bg-emerald-900/30";
+                }
+                if (order.status === "cancelled") { 
+                  statusLabel = "Order Cancelled"; 
+                  statusColor = "text-red-700 dark:text-red-400 font-bold";
+                  statusBg = "bg-red-100 dark:bg-red-900/30";
+                }
+                
+                return (
+                  <div key={order.id} className="p-4 rounded-2xl border" style={{ borderColor: 'var(--theme-border)', backgroundColor: 'var(--theme-card)' }}>
+                    <div className="flex justify-between items-center mb-4">
+                      <span className={`text-[11px] uppercase tracking-wider px-3 py-1.5 rounded-lg ${statusColor} ${statusBg}`}>
+                        {statusLabel}
+                      </span>
+                      <span className="text-[12px] opacity-60 font-medium" style={{ color: 'var(--theme-text-secondary)' }}>
+                        {order.timestamp?.toDate ? order.timestamp.toDate().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Just now'}
+                      </span>
+                    </div>
+                    <div className="space-y-2.5 mb-2">
+                      {order.items?.map((it: any, idx: number) => (
+                        <div key={idx} className="flex justify-between text-[14px] font-medium">
+                          <span style={{ color: 'var(--theme-text)' }}><span className="opacity-50 mr-2 font-bold">{it.quantity}x</span> {it.name}</span>
+                          <span className="font-extrabold opacity-80" style={{ color: 'var(--theme-text)' }}>₹{it.price * it.quantity}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}
