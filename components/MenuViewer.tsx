@@ -57,6 +57,12 @@ export default function MenuViewer({ shopId }: { shopId: string }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const urlTable = params.get('table');
+      if (urlTable) setTableNumber(urlTable);
+    }
+
     let shopLoaded = false;
     let itemsLoaded = false;
     
@@ -140,12 +146,12 @@ export default function MenuViewer({ shopId }: { shopId: string }) {
   const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
   const handlePlaceOrder = async () => {
-    if (!tableNumber.trim() || cart.length === 0) return;
+    if (cart.length === 0) return;
     setIsSubmitting(true);
     try {
       await addDoc(collection(db, "orders"), {
         shopId: shopId,
-        tableNumber: tableNumber.trim(),
+        tableNumber: tableNumber ? tableNumber.trim() : null,
         items: cart.map(c => ({ name: c.name, quantity: c.quantity, price: c.price })),
         timestamp: serverTimestamp(),
         status: "incoming"
@@ -359,27 +365,22 @@ export default function MenuViewer({ shopId }: { shopId: string }) {
             {/* Checkout Footer */}
             {cart.length > 0 && (
               <div className="p-5 border-t" style={{ borderColor: 'var(--theme-border)', backgroundColor: 'var(--theme-card)' }}>
-                <div className="mb-4">
-                  <label className="text-[12px] font-bold tracking-wide uppercase mb-2 block" style={{ color: 'var(--theme-text-secondary)' }}>Table Details</label>
-                  <input 
-                    type="text"
-                    value={tableNumber}
-                    onChange={(e) => setTableNumber(e.target.value)}
-                    placeholder="Enter Table Number or Name..."
-                    className="w-full px-4 py-3 rounded-[12px] text-[14px] outline-none transition-colors border focus:border-[color:var(--theme-primary)] placeholder:opacity-50"
-                    style={{ backgroundColor: 'var(--theme-search)', borderColor: 'var(--theme-border)', color: 'var(--theme-text)' }}
-                  />
-                </div>
+                {tableNumber && (
+                  <div className="mb-4 flex items-center justify-between p-3 rounded-[12px]" style={{ backgroundColor: 'var(--theme-search)' }}>
+                    <span className="text-[12px] font-bold tracking-wide uppercase" style={{ color: 'var(--theme-text-secondary)' }}>Delivering To</span>
+                    <span className="font-extrabold text-[15px]" style={{ color: 'var(--theme-text)' }}>{tableNumber}</span>
+                  </div>
+                )}
                 
-                <div className="flex justify-between items-center mb-4 pt-2">
+                <div className="flex justify-between items-center mb-4 pt-1">
                   <span className="font-bold text-[16px]" style={{ color: 'var(--theme-text-secondary)' }}>Total</span>
                   <span className="font-extrabold text-[22px] tracking-tight" style={{ color: 'var(--theme-text)' }}>₹{totalPrice}</span>
                 </div>
                 
                 <button 
                   onClick={handlePlaceOrder}
-                  disabled={isSubmitting || !tableNumber.trim()}
-                  style={{ backgroundColor: isSubmitting || !tableNumber.trim() ? 'var(--theme-search)' : primaryColor, color: isSubmitting || !tableNumber.trim() ? 'var(--theme-text-secondary)' : '#FFF' }}
+                  disabled={isSubmitting}
+                  style={{ backgroundColor: isSubmitting ? 'var(--theme-search)' : primaryColor, color: isSubmitting ? 'var(--theme-text-secondary)' : '#FFF' }}
                   className="w-full py-4 rounded-[16px] font-bold text-[15px] transition-all active:scale-95 disabled:active:scale-100 disabled:opacity-50"
                 >
                   {isSubmitting ? 'Sending Order...' : 'Place Order Now'}
