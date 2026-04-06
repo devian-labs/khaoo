@@ -25,6 +25,7 @@ type MenuItem = {
   isVeg: boolean;
   image?: string;
   isAvailable?: boolean;
+  menuId?: string;
 };
 
 type CartItem = MenuItem & { quantity: number };
@@ -46,7 +47,8 @@ type ShopData = {
 
 export default function MenuViewer({ shopId }: { shopId: string }) {
   const [activeCategory, setActiveCategory] = useState("All");
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [allMenuItems, setAllMenuItems] = useState<MenuItem[]>([]);
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [shopData, setShopData] = useState<ShopData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -109,7 +111,7 @@ export default function MenuViewer({ shopId }: { shopId: string }) {
           fetchedItems.push({ id: docSnap.id, ...data } as MenuItem);
         }
       });
-      setMenuItems(fetchedItems);
+      setAllMenuItems(fetchedItems);
       itemsLoaded = true;
       checkLoading();
     }, (err: any) => {
@@ -118,9 +120,20 @@ export default function MenuViewer({ shopId }: { shopId: string }) {
       setLoading(false);
     });
 
+    // Fetch Active Menu
+    const menusRef = collection(db, "menus");
+    const unsubscribeMenus = onSnapshot(query(menusRef, where("shopId", "==", shopId), where("isActive", "==", true)), (snapshot) => {
+      if (!snapshot.empty) {
+        setActiveMenuId(snapshot.docs[0].id);
+      } else {
+        setActiveMenuId(null);
+      }
+    });
+
     return () => {
       unsubscribeShop();
       unsubscribeItems();
+      unsubscribeMenus();
     };
   }, [shopId]);
 
@@ -140,6 +153,10 @@ export default function MenuViewer({ shopId }: { shopId: string }) {
     );
     return () => unsubscribeOrders();
   }, [sessionId, shopId]);
+
+  const menuItems = (activeMenuId && allMenuItems.some(i => i.menuId)) 
+    ? allMenuItems.filter(i => i.menuId === activeMenuId) 
+    : allMenuItems;
 
   const dynamicCategories = shopData?.categories && shopData.categories.length > 0 
     ? ["All", ...shopData.categories] 
@@ -227,7 +244,7 @@ export default function MenuViewer({ shopId }: { shopId: string }) {
     );
   }
 
-  if (error || menuItems.length === 0) {
+  if (error || (menuItems.length === 0 && !loading)) {
     return (
       <div className="w-full max-w-md mx-auto bg-zinc-50 min-h-screen flex flex-col items-center justify-center p-8 text-center">
         <AlertCircle className="w-12 h-12 text-zinc-400 mb-4" />
