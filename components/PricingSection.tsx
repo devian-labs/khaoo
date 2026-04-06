@@ -48,8 +48,8 @@ export default function PricingSection() {
               key={tier.name}
               className={`rounded-3xl p-8 xl:p-10 transition-all duration-300 transform hover:-translate-y-1 ${
                 tier.popular 
-                  ? "ring-2 ring-orange-500 bg-white dark:bg-zinc-950 shadow-xl shadow-orange-500/10" 
-                  : "ring-1 ring-zinc-200 dark:ring-white/10 bg-white dark:bg-zinc-950 shadow-lg shadow-zinc-200/50 dark:shadow-none hover:ring-orange-500/50 dark:hover:ring-orange-500/50"
+                  ? "ring-2 ring-red-500 bg-white dark:bg-zinc-950 shadow-xl shadow-red-500/10" 
+                  : "ring-1 ring-zinc-200 dark:ring-white/10 bg-white dark:bg-zinc-950 shadow-lg shadow-zinc-200/50 dark:shadow-none hover:ring-red-500/50 dark:hover:ring-red-500/50"
               }`}
             >
               <div className="flex items-center justify-between gap-x-4">
@@ -57,7 +57,7 @@ export default function PricingSection() {
                   {tier.name}
                 </h3>
                 {tier.popular && (
-                  <span className="rounded-full bg-orange-100 dark:bg-orange-500/10 px-2.5 py-1 text-xs font-semibold leading-5 text-orange-600 dark:text-orange-400">
+                  <span className="rounded-full bg-red-100 dark:bg-red-500/10 px-2.5 py-1 text-xs font-semibold leading-5 text-red-600 dark:text-red-400">
                     Most popular
                   </span>
                 )}
@@ -74,7 +74,7 @@ export default function PricingSection() {
                 href="#"
                 className={`mt-6 block rounded-xl px-3 py-2 text-center text-sm font-semibold leading-6 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 transition-colors ${
                   tier.popular
-                    ? "bg-orange-600 text-white hover:bg-orange-500 focus-visible:outline-orange-600"
+                    ? "bg-red-600 text-white hover:bg-red-500 focus-visible:outline-red-600"
                     : "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white hover:bg-zinc-200 dark:hover:bg-zinc-700"
                 }`}
               >
@@ -84,7 +84,7 @@ export default function PricingSection() {
               <ul role="list" className="mt-8 space-y-3 text-sm leading-6 text-zinc-600 dark:text-zinc-300">
                 {tier.features.map((feature) => (
                   <li key={feature} className="flex gap-x-3 items-center">
-                    <Check className="h-5 w-5 flex-none text-orange-600 dark:text-orange-400" aria-hidden="true" />
+                    <Check className="h-5 w-5 flex-none text-red-600 dark:text-red-400" aria-hidden="true" />
                     {feature}
                   </li>
                 ))}

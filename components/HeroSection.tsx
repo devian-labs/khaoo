@@ -6,15 +6,15 @@ export default function HeroSection() {
     <section className="relative overflow-hidden bg-white dark:bg-zinc-950 pt-24 pb-32 sm:pt-32 sm:pb-40">
       {/* Background decoration */}
       <div className="absolute inset-x-0 top-0 h-[50rem] overflow-hidden">
-        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[60rem] h-[60rem] bg-gradient-to-br from-orange-400/20 via-amber-200/5 to-transparent dark:from-orange-900/30 dark:via-orange-700/10 rounded-full blur-3xl opacity-70 animate-pulse-slow"></div>
+        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[60rem] h-[60rem] bg-gradient-to-br from-red-400/20 via-red-200/5 to-transparent dark:from-red-900/30 dark:via-red-700/10 rounded-full blur-3xl opacity-70 animate-pulse-slow"></div>
       </div>
 
       <div className="relative mx-auto max-w-7xl px-6 lg:px-8 text-center z-10">
         <div className="mx-auto max-w-3xl">
           <div className="mb-8 flex justify-center">
-            <div className="relative rounded-full px-5 py-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400 ring-1 ring-zinc-900/10 dark:ring-white/10 hover:ring-orange-500/50 dark:hover:ring-orange-500/50 hover:shadow-lg hover:shadow-orange-500/10 transition-all cursor-pointer backdrop-blur-sm bg-white/50 dark:bg-black/50">
-              Introducing <span className="font-bold text-orange-600 dark:text-orange-400">Khao</span> for Vendors {" "}
-              <Link href="#pricing" className="font-semibold text-orange-600 dark:text-orange-400 ml-2 group">
+            <div className="relative rounded-full px-5 py-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400 ring-1 ring-zinc-900/10 dark:ring-white/10 hover:ring-red-500/50 dark:hover:ring-red-500/50 hover:shadow-lg hover:shadow-red-500/10 transition-all cursor-pointer backdrop-blur-sm bg-white/50 dark:bg-black/50">
+              Introducing <span className="font-bold text-red-600 dark:text-red-400">Khao</span> for Vendors {" "}
+              <Link href="#pricing" className="font-semibold text-red-600 dark:text-red-400 ml-2 group">
                 <span className="absolute inset-0" aria-hidden="true" />
                 View Pricing <span aria-hidden="true" className="inline-block transition-transform group-hover:translate-x-1">&rarr;</span>
               </Link>
@@ -24,7 +24,7 @@ export default function HeroSection() {
           <h1 className="text-5xl font-extrabold tracking-tight text-zinc-900 dark:text-white sm:text-7xl mb-8 leading-tight">
             The Digital QR Menu for
             <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 via-amber-500 to-orange-400 drop-shadow-sm">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-red-500 to-red-400 drop-shadow-sm">
               Modern Shops
             </span>
           </h1>
@@ -60,9 +60,9 @@ export default function HeroSection() {
           <div className="mt-8 flex justify-center">
              <Link
               href="/menu/demo"
-              className="text-sm font-medium leading-6 text-zinc-600 dark:text-zinc-400 flex items-center gap-2 hover:text-orange-500 dark:hover:text-orange-400 transition-colors group"
+              className="text-sm font-medium leading-6 text-zinc-600 dark:text-zinc-400 flex items-center gap-2 hover:text-red-500 dark:hover:text-red-400 transition-colors group"
             >
-              <QrCode className="w-4 h-4 text-zinc-400 group-hover:text-orange-500 transition-colors" /> Try the interactive menu demo
+              <QrCode className="w-4 h-4 text-zinc-400 group-hover:text-red-500 transition-colors" /> Try the interactive menu demo
             </Link>
           </div>
         </div>

@@ -68,10 +68,10 @@ export default function MenuViewer({ shopId }: { shopId: string }) {
       const urlTable = params.get('table');
       if (urlTable) setTableNumber(urlTable);
 
-      let sid = localStorage.getItem("khaoo_session_id");
+      let sid = localStorage.getItem("khao_session_id");
       if (!sid) {
         sid = crypto.randomUUID();
-        localStorage.setItem("khaoo_session_id", sid);
+        localStorage.setItem("khao_session_id", sid);
       }
       setSessionId(sid);
     }
@@ -255,7 +255,7 @@ export default function MenuViewer({ shopId }: { shopId: string }) {
   }
 
   // Dynamic Theme Variables
-  const primaryColor = shopData?.primaryColor || "#E11D48";
+  const primaryColor = shopData?.primaryColor || "#DC2626";
   const backgroundColor = shopData?.backgroundColor || "#FFFFFF";
   const primaryColorTransparent = `${primaryColor}1A`; // 10% opacity
   const fontClass = getFontClass(shopData?.fontFamily || "Outfit");
@@ -370,7 +370,7 @@ export default function MenuViewer({ shopId }: { shopId: string }) {
       {/* Powered By Footer */}
       <div className={`mt-8 mb-8 ${isOrderingEnabled ? 'pb-32' : 'pb-12'} flex justify-center`}>
         <a href="/" target="_blank" rel="noopener noreferrer" className="text-[12px] font-medium opacity-50 hover:opacity-100 transition-opacity" style={{ color: 'var(--theme-text-secondary)' }}>
-          Powered by <span className="font-bold tracking-tight text-[13px]">khaoo</span>
+          Powered by <span className="font-bold tracking-tight text-[13px]">khao</span>
         </a>
       </div>
 

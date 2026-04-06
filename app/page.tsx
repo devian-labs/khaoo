@@ -16,7 +16,7 @@ export default function Home() {
             href="https://devian.app"
             target="_blank"
             rel="noopener noreferrer"
-            className="font-medium text-orange-600 dark:text-orange-400 hover:text-orange-500 transition-colors"
+            className="font-medium text-red-600 dark:text-red-400 hover:text-red-500 transition-colors"
           >
             Devian Labs
           </a>

@@ -79,7 +79,7 @@ export default function LoginPage() {
         
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-orange-500 to-amber-500 inline-block mb-2">
-            Khaoo Vendors
+            Khao Vendors
           </h1>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
             {step === "PHONE" ? "Login or create an account" : "Enter the code sent to your phone"}
