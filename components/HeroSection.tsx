@@ -13,7 +13,7 @@ export default function HeroSection() {
         <div className="mx-auto max-w-3xl">
           <div className="mb-8 flex justify-center">
             <div className="relative rounded-full px-5 py-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400 ring-1 ring-zinc-900/10 dark:ring-white/10 hover:ring-orange-500/50 dark:hover:ring-orange-500/50 hover:shadow-lg hover:shadow-orange-500/10 transition-all cursor-pointer backdrop-blur-sm bg-white/50 dark:bg-black/50">
-              Introducing <span className="font-bold text-orange-600 dark:text-orange-400">Khaoo</span> for Vendors {" "}
+              Introducing <span className="font-bold text-orange-600 dark:text-orange-400">Khao</span> for Vendors {" "}
               <Link href="#pricing" className="font-semibold text-orange-600 dark:text-orange-400 ml-2 group">
                 <span className="absolute inset-0" aria-hidden="true" />
                 View Pricing <span aria-hidden="true" className="inline-block transition-transform group-hover:translate-x-1">&rarr;</span>
