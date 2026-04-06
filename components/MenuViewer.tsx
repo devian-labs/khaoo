@@ -154,9 +154,9 @@ export default function MenuViewer({ shopId }: { shopId: string }) {
     return () => unsubscribeOrders();
   }, [sessionId, shopId]);
 
-  const menuItems = (activeMenuId && allMenuItems.some(i => i.menuId)) 
-    ? allMenuItems.filter(i => i.menuId === activeMenuId) 
-    : allMenuItems;
+  const menuItems = activeMenuId
+    ? allMenuItems.filter(i => i.menuId === activeMenuId)
+    : [];
 
   const dynamicCategories = shopData?.categories && shopData.categories.length > 0 
     ? ["All", ...shopData.categories] 
