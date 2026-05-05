@@ -6,6 +6,7 @@ import { Search, ShoppingBag, UtensilsCrossed, AlertCircle, ArrowRight, X, Clock
 import { collection, query, doc, onSnapshot, addDoc, serverTimestamp, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { getFontClass } from "@/lib/fonts";
+import { col } from "@/lib/env";
 
 function getLuminance(hex: string) {
   if (!hex) return 1;
@@ -86,7 +87,7 @@ export default function MenuViewer({ shopId }: { shopId: string }) {
     };
 
     // Fetch Shop Metadata Live
-    const shopRef = doc(db, "shops", shopId);
+    const shopRef = doc(db, col("shops"), shopId);
     const unsubscribeShop = onSnapshot(shopRef, (shopSnap) => {
       if (shopSnap.exists()) {
         setShopData(shopSnap.data() as ShopData);
@@ -102,7 +103,7 @@ export default function MenuViewer({ shopId }: { shopId: string }) {
     });
 
     // Fetch Menu Items Live
-    const itemsRef = collection(db, "menus", shopId, "items");
+    const itemsRef = collection(db, col("menus"), shopId, "items");
     const unsubscribeItems = onSnapshot(query(itemsRef), (snapshot) => {
       const fetchedItems: MenuItem[] = [];
       snapshot.forEach((docSnap) => {
@@ -121,7 +122,7 @@ export default function MenuViewer({ shopId }: { shopId: string }) {
     });
 
     // Fetch Active Menu
-    const menusRef = collection(db, "menus");
+    const menusRef = collection(db, col("menus"));
     const unsubscribeMenus = onSnapshot(query(menusRef, where("shopId", "==", shopId), where("isActive", "==", true)), (snapshot) => {
       if (!snapshot.empty) {
         setActiveMenuId(snapshot.docs[0].id);
@@ -139,7 +140,7 @@ export default function MenuViewer({ shopId }: { shopId: string }) {
 
   useEffect(() => {
     if (!sessionId || !shopId) return;
-    const myOrdersRef = collection(db, "orders");
+    const myOrdersRef = collection(db, col("orders"));
     const unsubscribeOrders = onSnapshot(
       query(myOrdersRef, where("shopId", "==", shopId), where("sessionId", "==", sessionId)),
       (snapshot) => {
@@ -194,7 +195,7 @@ export default function MenuViewer({ shopId }: { shopId: string }) {
     if (cart.length === 0) return;
     setIsSubmitting(true);
     try {
-      await addDoc(collection(db, "orders"), {
+      await addDoc(collection(db, col("orders")), {
         shopId: shopId,
         sessionId: sessionId,
         tableNumber: tableNumber ? tableNumber.trim() : null,
@@ -218,7 +219,7 @@ export default function MenuViewer({ shopId }: { shopId: string }) {
     if (!tableNumber) return;
     setIsSubmittingRequest(true);
     try {
-      await addDoc(collection(db, "customer_requests"), {
+      await addDoc(collection(db, col("customer_requests")), {
         shopId: shopId,
         sessionId: sessionId,
         tableNumber: tableNumber.trim(),
